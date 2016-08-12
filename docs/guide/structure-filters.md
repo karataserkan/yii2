@@ -322,7 +322,7 @@ public function behaviors()
 
 ### [[yii\filters\Cors|Cors]] <span id="cors"></span>
 
-Cross-origin resource sharing [CORS](https://developer.mozilla.org/fr/docs/HTTP/Access_control_CORS) is a mechanism that allows many resources (e.g. fonts, JavaScript, etc.)
+Cross-origin resource sharing [CORS](https://developer.mozilla.org/en-US/docs/HTTP/Access_control_CORS) is a mechanism that allows many resources (e.g. fonts, JavaScript, etc.)
 on a Web page to be requested from another domain outside the domain the resource originated from.
 In particular, JavaScript's AJAX calls can use the XMLHttpRequest mechanism. Such "cross-domain" requests would
 otherwise be forbidden by Web browsers, per the same origin security policy.
@@ -345,7 +345,10 @@ public function behaviors()
 }
 ```
 
-The Cors filtering could be tuned using the `cors` property.
+Also check the section on [REST Controllers](rest-controllers.md#cors) if you want to add the CORS filter to an
+[[yii\rest\ActiveController]] class in your API.
+
+The Cors filtering could be tuned using the [[yii\filters\Cors::$cors|$cors]] property.
 
 * `cors['Origin']`: array used to define allowed origins. Can be `['*']` (everyone) or `['http://www.myserver.net', 'http://www.myotherserver.com']`. Default to `['*']`.
 * `cors['Access-Control-Request-Method']`: array of allowed verbs like `['GET', 'OPTIONS', 'HEAD']`.  Default to `['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']`.

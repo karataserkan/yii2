@@ -75,7 +75,57 @@ echo Html::tag('div', 'Pwede na', $options);
 // <div class="btn btn-success">Pwede na</div>
 ```
 
-In order to do the same with styles for the `style` attribute:
+You may specify multiple CSS classes using the array style as well:
+
+```php
+$options = ['class' => ['btn', 'btn-default']];
+
+echo Html::tag('div', 'Save', $options);
+// renders '<div class="btn btn-default">Save</div>'
+```
+
+While adding or removing classes you may use the array format as well:
+
+```php
+$options = ['class' => 'btn'];
+
+if ($type === 'success') {
+    Html::addCssClass($options, ['btn-success', 'btn-lg']);
+}
+
+echo Html::tag('div', 'Save', $options);
+// renders '<div class="btn btn-success btn-lg">Save</div>'
+```
+
+`Html::addCssClass()` prevents duplicating classes, so you don't need to worry that the same class may appear twice:
+
+```php
+$options = ['class' => 'btn btn-default'];
+
+Html::addCssClass($options, 'btn-default'); // class 'btn-default' is already present
+
+echo Html::tag('div', 'Save', $options);
+// renders '<div class="btn btn-default">Save</div>'
+```
+
+If the CSS class option is specified via the array format, you may use a named key to mark the logical purpose of the class.
+In this case, a class with the same key in the array format will be ignored in `Html::addCssClass()`:
+
+```php
+$options = [
+    'class' => [
+        'btn',
+        'theme' => 'btn-default',
+    ]
+];
+
+Html::addCssClass($options, ['theme' => 'btn-success']); // 'theme' key is already taken
+
+echo Html::tag('div', 'Save', $options);
+// renders '<div class="btn btn-default">Save</div>'
+```
+
+CSS styles can be setup in similar way using `style` attribute:
 
 ```php
 $options = ['style' => ['width' => '100px', 'height' => '100px']];
@@ -278,7 +328,7 @@ echo Html::getAttributeName('dates[0]');
 
 ## Styles and Scripts <span id="styles-and-scripts"></span>
 
-There two methods to generate tags wrapping embedded styles and scripts:
+There are two methods to generate tags wrapping embedded styles and scripts:
 
 ```php
 <?= Html::style('.danger { color: #f00; }') ?>
@@ -336,7 +386,7 @@ The first argument is the title. It's not encoded so if you're using data got fr
 `Html::encode()`. Second argument is what will be in `href` of `<a` tag. See [Url::to()](helper-url.md) for details on
 what values it accepts. Third argument is array of tag properties.
 
-In you need to generate `mailto` link you can use the following code:
+If you need to generate `mailto` link you can use the following code:
 
 ```php
 <?= Html::mailto('Contact us', 'admin@example.com') ?>

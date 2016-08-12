@@ -2,7 +2,7 @@ Dependency Injection Container
 ==============================
 
 A dependency injection (DI) container is an object that knows how to instantiate and configure objects and
-all their dependent objects. [Martin's article](http://martinfowler.com/articles/injection.html) has well
+all their dependent objects. [Martin Fowler's article](http://martinfowler.com/articles/injection.html) has well
 explained why DI container is useful. Here we will mainly explain the usage of the DI container provided by Yii.
 
 
@@ -13,8 +13,9 @@ Yii provides the DI container feature through the class [[yii\di\Container]]. It
 dependency injection:
 
 * Constructor injection;
+* Method injection;
 * Setter and property injection;
-* PHP callable injection.
+* PHP callable injection;
 
 
 ### Constructor Injection <span id="constructor-injection"></span>
@@ -38,6 +39,36 @@ $bar = new Bar;
 $foo = new Foo($bar);
 ```
 
+
+### Method Injection <span id="method-injection"></span>
+
+Usually the dependencies of a class are passed to the constructor and are available inside of the class during the whole lifecycle.
+With Method Injection it is possible to provide a dependency that is only needed by a single method of the class
+and passing it to the constructor may not be possible or may cause too much overhead in the majority of use cases.
+
+A class method can be defined like the `doSomething()` method in the following example:
+
+```php
+class MyClass extends \yii\base\Component
+{
+    public function __construct(/*Some lightweight dependencies here*/, $config = [])
+    {
+        // ...
+    }
+
+    public function doSomething($param1, \my\heavy\Dependency $something)
+    {
+        // do something with $something
+    }
+}
+```
+
+You may call that method either by passing an instance of `\my\heavy\Dependency` yourself or using [[yii\di\Container::invoke()]] like the following:
+
+```php
+$obj = new MyClass(/*...*/);
+Yii::$container->invoke([$obj, 'doSomething'], ['param1' => 42]); // $something will be provided by the DI container
+```
 
 ### Setter and Property Injection <span id="setter-and-property-injection"></span>
 
@@ -95,29 +126,25 @@ $container->set('Foo', function () {
 $foo = $container->get('Foo');
 ```
 
-To hide the complex logic for building a new object, you may use a static class method to return the PHP
-callable. For example,
+To hide the complex logic for building a new object, you may use a static class method as callable. For example,
 
 ```php
 class FooBuilder
 {
     public static function build()
     {
-        return function () {
-            $foo = new Foo(new Bar);
-            // ... other initializations ...
-            return $foo;
-       };        
+        $foo = new Foo(new Bar);
+        // ... other initializations ...
+        return $foo;
     }
 }
 
-$container->set('Foo', FooBuilder::build());
+$container->set('Foo', ['app\helper\FooBuilder', 'build']);
 
 $foo = $container->get('Foo');
 ```
 
-As you can see, the PHP callable is returned by the `FooBuilder::build()` method. By doing so, the person
-who wants to configure the `Foo` class no longer needs to be aware of how it is built.
+By doing so, the person who wants to configure the `Foo` class no longer needs to be aware of how it is built.
 
 
 Registering Dependencies <span id="registering-dependencies"></span>
@@ -207,8 +234,8 @@ For example,
 // "db" is a previously registered alias name
 $db = $container->get('db');
 
-// equivalent to: $engine = new \app\components\SearchEngine($apiKey, ['type' => 1]);
-$engine = $container->get('app\components\SearchEngine', [$apiKey], ['type' => 1]);
+// equivalent to: $engine = new \app\components\SearchEngine($apiKey, $apiSecret, ['type' => 1]);
+$engine = $container->get('app\components\SearchEngine', [$apiKey, $apiSecret], ['type' => 1]);
 ```
 
 Behind the scene, the DI container does much more work than just creating a new object.
@@ -307,6 +334,8 @@ You can still override the value set via DI container, though:
 echo \yii\widgets\LinkPager::widget(['maxButtonCount' => 20]);
 ```
 
+> Tip: no matter which value type it is, it will be overwritten so be careful with option arrays. They won't be merged.
+
 Another example is to take advantage of the automatic constructor injection of the DI container.
 Assume your controller class depends on some other objects, such as a hotel booking service. You
 can declare the dependency through a constructor parameter and let the DI container to resolve it for you.
@@ -344,7 +373,7 @@ When to Register Dependencies <span id="when-to-register-dependencies"></span>
 -----------------------------
 
 Because dependencies are needed when new objects are being created, their registration should be done
-as early as possible. The followings are the recommended practices:
+as early as possible. The following are the recommended practices:
 
 * If you are the developer of an application, you can register dependencies in your
   application's [entry script](structure-entry-scripts.md) or in a script that is included by the entry script.
