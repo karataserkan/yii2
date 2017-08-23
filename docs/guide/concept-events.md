@@ -31,9 +31,9 @@ function ($event) {
 
 Through the `$event` parameter, an event handler may get the following information about the event that occurred:
 
-- [[yii\base\Event::name|event name]]
-- [[yii\base\Event::sender|event sender]]: the object whose `trigger()` method was called
-- [[yii\base\Event::data|custom data]]: the data that is provided when attaching the event handler (to be explained next)
+- [[yii\base\Event::name|event name]];
+- [[yii\base\Event::sender|event sender]]: the object whose `trigger()` method was called;
+- [[yii\base\Event::data|custom data]]: the data that is provided when attaching the event handler (to be explained next).
 
 
 Attaching Event Handlers <span id="attaching-event-handlers"></span>
@@ -81,7 +81,7 @@ Event Handler Order
 
 You may attach one or more handlers to a single event. When an event is triggered, the attached handlers
 will be called in the order that they were attached to the event. If a handler needs to stop the invocation of the
-handlers that follow it, it may set the [[yii\base\Event::handled]] property of the `$event` parameter to be true:
+handlers that follow it, it may set the [[yii\base\Event::handled]] property of the `$event` parameter to be `true`:
 
 ```php
 $foo->on(Foo::EVENT_HELLO, function ($event) {
@@ -91,7 +91,7 @@ $foo->on(Foo::EVENT_HELLO, function ($event) {
 
 By default, a newly attached handler is appended to the existing handler queue for the event.
 As a result, the handler will be called in the last place when the event is triggered.
-To insert the new handler at the start of the handler queue so that the handler gets called first, you may call [[yii\base\Component::on()]], passing false for the fourth parameter `$append`:
+To insert the new handler at the start of the handler queue so that the handler gets called first, you may call [[yii\base\Component::on()]], passing `false` for the fourth parameter `$append`:
 
 ```php
 $foo->on(Foo::EVENT_HELLO, function ($event) {
@@ -187,7 +187,7 @@ Note that in general you should not try to detach an anonymous function unless y
 somewhere when it is attached to the event. In the above example, it is assumed that the anonymous
 function is stored as a variable `$anonymousFunction`.
 
-To detach ALL handlers from an event, simply call [[yii\base\Component::off()]] without the second parameter:
+To detach *all* handlers from an event, simply call [[yii\base\Component::off()]] without the second parameter:
 
 ```php
 $foo->off(Foo::EVENT_HELLO);
@@ -230,16 +230,16 @@ handlers only. For example:
 use yii\base\Event;
 
 Event::on(Foo::className(), Foo::EVENT_HELLO, function ($event) {
-    echo $event->sender;  // displays "app\models\Foo"
+    var_dump($event->sender);  // displays "null"
 });
 
 Event::trigger(Foo::className(), Foo::EVENT_HELLO);
 ```
 
-Note that, in this case, `$event->sender` refers to the name of the class triggering the event instead of an object instance.
+Note that, in this case, `$event->sender` is `null` instead of an object instance.
 
 > Note: Because a class-level handler will respond to an event triggered by any instance of that class, or any child
-  classes, you should use it carefully, especially if the class is a low-level base class, such as [[yii\base\Object]].
+  classes, you should use it carefully, especially if the class is a low-level base class, such as [[yii\base\BaseObject]].
 
 To detach a class-level event handler, call [[yii\base\Event::off()]]. For example:
 
@@ -261,6 +261,8 @@ implement it in classes, where you need it.
 For example, we can create the following interface:
 
 ```php
+namespace app\interfaces;
+
 interface DanceEventInterface
 {
     const EVENT_DANCE = 'dance';
@@ -290,35 +292,39 @@ class Developer extends Component implements DanceEventInterface
 ```
 
 To handle the `EVENT_DANCE`, triggered by any of these classes, call [[yii\base\Event::on()|Event::on()]] and
-pass the interface name as the first argument:
+pass the interface class name as the first argument:
 
 ```php
-Event::on('DanceEventInterface', DanceEventInterface::EVENT_DANCE, function ($event) {
-    Yii::trace($event->sender->className . ' just danced'); // Will log that Dog or Developer danced
-})
+Event::on('app\interfaces\DanceEventInterface', DanceEventInterface::EVENT_DANCE, function ($event) {
+    Yii::trace(get_class($event->sender) . ' just danced'); // Will log that Dog or Developer danced
+});
 ```
 
 You can trigger the event of those classes:
 
 ```php
-Event::trigger(DanceEventInterface::className(), DanceEventInterface::EVENT_DANCE);
+// trigger event for Dog class
+Event::trigger(Dog::className(), DanceEventInterface::EVENT_DANCE);
+
+// trigger event for Developer class
+Event::trigger(Developer::className(), DanceEventInterface::EVENT_DANCE);
 ```
 
 But please notice, that you can not trigger all the classes, that implement the interface:
 
 ```php
-// DOES NOT WORK
-Event::trigger('DanceEventInterface', DanceEventInterface::EVENT_DANCE); // error
+// DOES NOT WORK. Classes that implement this interface will NOT be triggered.
+Event::trigger('app\interfaces\DanceEventInterface', DanceEventInterface::EVENT_DANCE);
 ```
 
 To detach event handler, call [[yii\base\Event::off()|Event::off()]]. For example:
 
 ```php
 // detaches $handler
-Event::off('DanceEventInterface', DanceEventInterface::EVENT_DANCE, $handler);
+Event::off('app\interfaces\DanceEventInterface', DanceEventInterface::EVENT_DANCE, $handler);
 
 // detaches all handlers of DanceEventInterface::EVENT_DANCE
-Event::off('DanceEventInterface', DanceEventInterface::EVENT_DANCE);
+Event::off('app\interfaces\DanceEventInterface', DanceEventInterface::EVENT_DANCE);
 ```
 
 
